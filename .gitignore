@@ -1,0 +1,11 @@
+__pycache__
+*.7z
+.mypy_cache
+.python-version
+data/datasets
+data/ddppo-models
+data/full_2.1.0
+data/wget-log
+data/json_feat_2.1.0
+env.sh
+exp
