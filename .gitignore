@@ -9,3 +9,4 @@ data/wget-log
 data/json_feat_2.1.0
 env.sh
 exp
+tb_logs

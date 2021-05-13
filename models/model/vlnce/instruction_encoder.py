@@ -1,20 +1,32 @@
 import gzip
 import json
+from pathlib import Path
 from typing import Dict
 import torch
 import torch.nn as nn
-from vocab import Vocab
+import argtyped
+
+
+class InstructionEncoderArguments(argtyped.Arguments):
+    language_hidden_size: int = 128
+    voc_size: int = 2360
+    language_dropout: float = 0.1
+    language_embedding_size: int = 50
+    use_pretrained_embeddings: bool = True
+    fine_tune_embeddings: bool = False
+    embedding_file: Path = Path(
+        "data/datasets/R2R_VLNCE_v1-2_preprocessed/embeddings.json.gz"
+    )
 
 
 class InstructionEncoder(nn.Module):
-    def __init__(self, args, vocab: Dict[str, Vocab]):
+    def __init__(self, args: InstructionEncoderArguments):
         r"""An encoder that uses RNN to encode an instruction. Returns
         the final hidden state after processing the instruction sequence.
         """
         super().__init__()
 
         self.config = args
-        self.vocab = vocab
 
         if self.config.use_pretrained_embeddings:
             self.embedding_layer = nn.Embedding.from_pretrained(
@@ -23,22 +35,22 @@ class InstructionEncoder(nn.Module):
             )
         else:  # each embedding initialized to sampled Gaussian
             self.embedding_layer = nn.Embedding(
-                num_embeddings=len(self.vocab["word"]),
-                embedding_dim=self.config.demb,
+                num_embeddings=args.voc_size,
+                embedding_dim=self.config.language_embedding_size,
                 padding_idx=0,
             )
 
         rnn = nn.GRU
         self.bidir = True
         self.encoder_rnn = rnn(
-            input_size=self.config.demb,
-            hidden_size=self.config.dhidden_instr,
+            input_size=self.config.language_embedding_size,
+            hidden_size=self.config.language_hidden_size,
             bidirectional=self.bidir,
         )
 
     @property
     def output_size(self):
-        return self.config.dhidden_instr * (2 if self.bidir else 1)
+        return self.config.language_hidden_size * (2 if self.bidir else 1)
 
     def _load_embeddings(self):
         """Loads word embeddings from a pretrained embeddings file.

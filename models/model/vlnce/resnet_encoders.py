@@ -34,7 +34,7 @@ class VlnResnetDepthEncoder(nn.Module):
         for param in self.visual_encoder.parameters():
             param.requires_grad_(trainable)
 
-        if checkpoint != "NONE":
+        if str(checkpoint) != "NONE":
             ddppo_weights = torch.load(checkpoint)
 
             weights_dict = {}
